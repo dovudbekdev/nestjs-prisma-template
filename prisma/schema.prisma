@@ -5,11 +5,60 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"    // Prisma Client generator
+  provider = "prisma-client-js" // Prisma Client generator
   output   = "../generated/prisma" // Prisma Client generatsiya qilgan fayllarni qayerga joylashtirishni belgilaydi
 }
 
 datasource db {
-  provider = "postgresql"          // DB turi: postgresql, mysql, sqlite, mongo
-  url      = env("DATABASE_URL")   // Muhit o‘zgaruvchisi
+  provider = "postgresql" // DB turi: postgresql, mysql, sqlite, mongo
+  url      = env("DATABASE_URL") // Muhit o‘zgaruvchisi
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  profile  Profile?
+  orders   Order[]
+}
+
+model Profile {
+  id      Int     @id @default(autoincrement())
+  address String?
+  phone   String?
+  userId  Int     @unique
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  orderDate  DateTime    @default(now())
+  userId     Int         @unique
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+model Product {
+  id         Int         @id @default(autoincrement())
+  name       String
+  price      Float
+  stock      Int
+  categoryId Int
+  orderItems OrderItem[]
+  categories Category[]  @relation("ProductCategories")
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[] @relation("ProductCategories")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  orderId   Int     @unique
+  productId Int     @unique
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 }
